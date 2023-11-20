@@ -5,6 +5,7 @@ import login.ClientCreatingPage;
 import login.HomePage;
 
 import org.apache.log4j.Logger;
+import org.junit.Assert;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -13,20 +14,21 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import java.time.Duration;
 import java.util.Random;
 
-
 public class ClientCreatingTest {
     private Random random = new Random();
     private Logger logger = Logger.getLogger(getClass());
-    private WebDriver webDriver;
+    private WebDriver webDriver = new ChromeDriver();
     private String userName = "TestUser " + random.nextInt(1000);
+
+    private void setWebDriverManager() {
+        WebDriverManager.chromedriver().setup();
+        webDriver.manage().window().maximize();
+        webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(7));
+    }
 
     @Test
     public void validClientCreatingTest() {
-        WebDriverManager.chromedriver().setup();
-        webDriver = new ChromeDriver();
-
-        webDriver.manage().window().maximize();
-        webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(7));
+        setWebDriverManager();
 
         webDriver.get(HomePage.HOME_PAGE);
         logger.info("Home page is opened");
@@ -47,6 +49,24 @@ public class ClientCreatingTest {
         webDriver.findElement(By.xpath(HomePage.SEARCH_FIELD)).sendKeys(userName);
         webDriver.findElement(By.xpath(HomePage.SEARCH_FIELD)).submit();
 
-        webDriver.close();
+        webDriver.quit();
+    }
+
+    @Test
+    public void invalidClientCreatingTest() {
+        setWebDriverManager();
+
+        webDriver.get(HomePage.HOME_PAGE);
+        logger.info("Home page is opened");
+        webDriver.findElement(By.xpath(ClientCreatingPage.NEW_CLIENT_BUTTON)).click();
+
+        webDriver.findElement(By.xpath(ClientCreatingPage.NAME_FIELD)).sendKeys(userName);
+        webDriver.findElement(By.xpath(ClientCreatingPage.SURNAME_FIELD)).sendKeys("Автотест");
+        webDriver.findElement(By.xpath(ClientCreatingPage.PHONE_NUMBER_FIELD)).sendKeys("");
+        logger.info("The fields are filled out: Name, Surname");
+
+        Assert.assertEquals(webDriver.getCurrentUrl(), ClientCreatingPage.CLIENT_CREATING_PAGE);
+
+        webDriver.quit();
     }
 }
